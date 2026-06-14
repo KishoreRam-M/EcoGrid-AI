@@ -20,255 +20,777 @@ from src.models import (
 from src.train_models import run_training_pipeline
 from src.business_logic import get_procurement_advice
 
-# Set Page Config
+# ──────────────────────────────────────────
+# PAGE CONFIG
+# ──────────────────────────────────────────
 st.set_page_config(
-    page_title="EcoGrid AI: Real-Time Green Asset Volatility System",
+    page_title="EcoGrid AI — Green Asset Intelligence",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Premium Dark Mode Glassmorphism Theme Styling Injection
-st.markdown(
-    """
-    <style>
-    /* Main body styles */
-    .main {
-        background-color: #0d0f12;
-        color: #f3f4f6;
-    }
-    
-    /* Sidebar styling & white text override */
-    section[data-testid="stSidebar"] {
-        background-color: #15181e;
-        border-right: 1px solid #232833;
-    }
-    section[data-testid="stSidebar"] * {
-        color: #ffffff !important;
-    }
-    
-    /* Header card */
-    .header-container {
-        background: linear-gradient(135deg, #1e3a8a 0%, #065f46 100%);
-        padding: 30px;
-        border-radius: 16px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        margin-bottom: 30px;
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-    }
-    
-    .header-title {
-        color: #ffffff;
-        font-family: 'Outfit', 'Inter', sans-serif;
-        font-weight: 800;
-        font-size: 2.5rem;
-        margin: 0;
-    }
-    
-    .header-subtitle {
-        color: #93c5fd;
-        font-size: 1.1rem;
-        margin-top: 10px;
-        font-weight: 400;
-    }
-    
-    /* Custom KPI Cards */
-    .kpi-card {
-        background: #1c202a;
-        padding: 20px;
-        border-radius: 12px;
-        border: 1px solid #2b3242;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        text-align: center;
-        transition: transform 0.2s ease-in-out;
-    }
-    .kpi-card:hover {
-        transform: translateY(-2px);
-        border-color: #3b82f6;
-    }
-    .kpi-title {
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: #9ca3af;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-    }
-    .kpi-value {
-        font-size: 1.85rem;
-        font-weight: 700;
-        margin: 10px 0;
-    }
-    .kpi-delta {
-        font-size: 0.85rem;
-        font-weight: 600;
-    }
-    
-    /* Recommendation Room */
-    .rec-box {
-        border-radius: 12px;
-        padding: 25px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        box-shadow: 0 6px 20px rgba(0,0,0,0.2);
-        margin-bottom: 25px;
-    }
-    
-    /* Alert badge inside card headers */
-    .badge {
-        display: inline-block;
-        padding: 5px 12px;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        margin-bottom: 10px;
-    }
-    
-    /* Block container alignment */
-    .block-container {
-        padding-top: 2rem !important;
-        padding-bottom: 2rem !important;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+# ──────────────────────────────────────────
+# GLOBAL DESIGN SYSTEM + CSS INJECTION
+# ──────────────────────────────────────────
+st.markdown("""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
-# ==========================================
-# STREAMLIT CACHED DATA & MODEL WRAPPERS
-# ==========================================
+/* ─── BASE & LAYOUT ─── */
+html, body, [data-testid="stAppViewContainer"], [data-testid="stHeader"], [class*="css"] {
+    font-family: 'Inter', sans-serif !important;
+    background-color: #080a10 !important;
+    color: #cbd5e1 !important;
+}
+.main { background-color: #080a10 !important; }
+.block-container {
+    padding: 2rem 2.5rem 4rem 2.5rem !important;
+    max-width: 1400px !important;
+}
 
+/* ─── SIDEBAR ─── */
+section[data-testid="stSidebar"] {
+    background-color: #04060a !important;
+    border-right: 1px solid #1e293b !important;
+    padding-top: 0 !important;
+}
+section[data-testid="stSidebar"] > div:first-child {
+    padding-top: 0 !important;
+}
+section[data-testid="stSidebar"] * { color: #e2e8f0 !important; }
+
+/* ─── SIDEBAR BRAND STRIP ─── */
+.sb-brand {
+    background: linear-gradient(135deg, #090d16 0%, #0c1220 100%);
+    border-bottom: 1px solid #1e293b;
+    padding: 20px 16px 18px;
+    margin-bottom: 8px;
+}
+.sb-brand-title {
+    font-family: 'Space Grotesk', sans-serif !important;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff !important;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+.sb-brand-sub {
+    font-size: 0.72rem;
+    color: #64748b !important;
+    letter-spacing: 0.03em;
+}
+
+/* ─── SIDEBAR SECTION LABELS ─── */
+.sb-section {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #3b82f6 !important;
+    padding: 16px 0 6px 0;
+    margin-left: 2px;
+}
+.sb-divider {
+    border: none;
+    border-top: 1px solid #1e293b;
+    margin: 6px 0 10px;
+}
+.sb-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    color: #64748b !important;
+    padding: 3px 0;
+}
+
+/* ─── HERO SECTION ─── */
+.hero-wrapper {
+    background: linear-gradient(135deg, #0e1322 0%, #121829 60%, #0e1628 100%);
+    border: 1px solid #1e293b;
+    border-radius: 16px;
+    padding: 32px 36px;
+    margin-bottom: 28px;
+    position: relative;
+    overflow: hidden;
+}
+.hero-wrapper::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 280px; height: 280px;
+    background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%);
+    pointer-events: none;
+}
+.hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(59,130,246,0.1);
+    border: 1px solid rgba(59,130,246,0.2);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #60a5fa !important;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 14px;
+}
+.live-dot {
+    width: 7px; height: 7px;
+    background: #10b981;
+    border-radius: 50%;
+    display: inline-block;
+    animation: blink 1.8s ease-in-out infinite;
+}
+@keyframes blink {
+    0%, 100% { opacity: 0.4; }
+    50%       { opacity: 1; }
+}
+.hero-title {
+    font-family: 'Space Grotesk', sans-serif !important;
+    font-size: 2.05rem;
+    font-weight: 700;
+    color: #fff !important;
+    line-height: 1.2;
+    letter-spacing: -0.03em;
+    margin: 0 0 8px 0;
+}
+.hero-sub {
+    font-size: 0.95rem;
+    color: #94a3b8 !important;
+    line-height: 1.6;
+    max-width: 600px;
+    margin: 0;
+}
+.hero-pills {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 24px;
+}
+.hero-pill {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid #1e293b;
+    border-radius: 10px;
+    padding: 8px 16px;
+    display: flex;
+    flex-direction: column;
+}
+.hp-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: #64748b !important;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 3px;
+}
+.hp-value {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff !important;
+    line-height: 1;
+}
+
+/* ─── KPI CARDS ─── */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin-bottom: 28px;
+}
+.kpi-card {
+    background: #121620;
+    border: 1px solid #1e293b;
+    border-radius: 14px;
+    padding: 20px 20px 16px;
+    transition: border-color 0.2s, transform 0.2s, background-color 0.2s;
+    cursor: default;
+}
+.kpi-card:hover {
+    border-color: rgba(59,130,246,0.3);
+    background-color: #161c2b;
+    transform: translateY(-2px);
+}
+.kpi-icon { font-size: 1.4rem; margin-bottom: 10px; display: block; }
+.kpi-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #64748b !important;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+}
+.kpi-value {
+    font-family: 'Space Grotesk', sans-serif !important;
+    font-size: 1.85rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.02em;
+}
+.kpi-delta {
+    margin-top: 8px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.kpi-context {
+    font-size: 0.72rem;
+    color: #64748b !important;
+    margin-top: 4px;
+}
+
+/* ─── SECTION HEADERS ─── */
+.section-header {
+    margin: 36px 0 4px 0;
+}
+.section-tag {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #3b82f6 !important;
+    margin-bottom: 4px;
+    display: block;
+}
+.section-title {
+    font-family: 'Space Grotesk', sans-serif !important;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #fff !important;
+    letter-spacing: -0.02em;
+    margin: 0 0 4px 0;
+}
+.section-desc {
+    font-size: 0.85rem;
+    color: #64748b !important;
+    margin: 0 0 20px 0;
+}
+
+/* ─── CHART WRAPPERS ─── */
+.chart-card {
+    background: #121620;
+    border: 1px solid #1e293b;
+    border-radius: 14px;
+    padding: 20px 16px 8px;
+    margin-bottom: 16px;
+}
+.chart-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #cbd5e1 !important;
+    margin-bottom: 2px;
+}
+.chart-sub {
+    font-size: 0.72rem;
+    color: #64748b !important;
+    margin-bottom: 12px;
+}
+
+/* ─── RISK ENGINE PANEL ─── */
+.risk-panel {
+    background: linear-gradient(135deg, #121620 0%, #151c2d 100%);
+    border: 1px solid #1e293b;
+    border-radius: 14px;
+    padding: 24px 26px;
+    margin-bottom: 20px;
+}
+.risk-factors-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+}
+.risk-factor-card {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid #1e293b;
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+}
+.rf-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #64748b !important;
+    margin-bottom: 6px;
+}
+.rf-value {
+    font-family: 'Space Grotesk', sans-serif !important;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+.rf-context { font-size: 0.68rem; color: #64748b !important; margin-top: 3px; }
+
+/* ─── INSIGHT BOX ─── */
+.insight-box {
+    background: rgba(59,130,246,0.03);
+    border-left: 3px solid #3b82f6;
+    border-top: 1px solid #1e293b;
+    border-bottom: 1px solid #1e293b;
+    border-right: 1px solid #1e293b;
+    border-radius: 0 12px 12px 0;
+    padding: 18px 22px;
+    margin: 20px 0 24px;
+}
+.insight-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+.insight-badge {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #60a5fa !important;
+}
+.insight-row {
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: #94a3b8 !important;
+    margin-bottom: 5px;
+}
+.insight-row strong { color: #f8fafc !important; }
+
+/* ─── ADVISORY PANEL ─── */
+.advisory-panel {
+    border-radius: 14px;
+    padding: 24px;
+    border: 1px solid #1e293b;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+}
+.advisory-action-badge {
+    display: inline-block;
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #fff !important;
+    margin-bottom: 12px;
+}
+.advisory-headline {
+    font-family: 'Space Grotesk', sans-serif !important;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #fff !important;
+    margin-bottom: 6px;
+    line-height: 1.3;
+}
+.advisory-sub {
+    font-size: 0.82rem;
+    color: #94a3b8 !important;
+}
+
+/* ─── LEADERBOARD TABLE ─── */
+.lb-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    background: #121620;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #1e293b;
+}
+.lb-table th {
+    background: #181e2e;
+    color: #94a3b8 !important;
+    text-align: left;
+    padding: 11px 14px;
+    font-weight: 600;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    border-bottom: 1px solid #1e293b;
+}
+.lb-table td {
+    padding: 13px 14px;
+    color: #cbd5e1 !important;
+    border-bottom: 1px solid #1e293b;
+}
+.lb-table tr:last-child td { border-bottom: none; }
+.lb-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+/* ─── TABS ─── */
+div[data-testid="stTabs"] {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    margin-bottom: 20px !important;
+}
+button[data-baseweb="tab"] {
+    font-size: 0.875rem !important;
+    font-weight: 600 !important;
+    color: #64748b !important;
+    padding: 10px 18px !important;
+    border-bottom: 2px solid transparent !important;
+    background: transparent !important;
+    border-radius: 0 !important;
+    transition: color 0.2s !important;
+}
+button[data-baseweb="tab"]:hover { color: #f8fafc !important; }
+button[aria-selected="true"] {
+    color: #3b82f6 !important;
+    border-bottom: 2px solid #3b82f6 !important;
+}
+div[data-baseweb="tab-list"] {
+    border-bottom: 1px solid #1e293b !important;
+    gap: 4px !important;
+    background: transparent !important;
+}
+
+/* ─── STREAMLIT NATIVE OVERRIDES ─── */
+div[data-testid="stMetric"] {
+    background: #121620 !important;
+    border: 1px solid #1e293b !important;
+    border-radius: 14px !important;
+    padding: 16px 18px !important;
+}
+[data-testid="stMetricLabel"] > div {
+    font-size: 0.72rem !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.08em !important;
+    color: #64748b !important;
+}
+[data-testid="stMetricValue"] > div {
+    font-family: 'Space Grotesk', sans-serif !important;
+    font-size: 1.75rem !important;
+    font-weight: 700 !important;
+    color: #fff !important;
+}
+.stExpander {
+    background: #121620 !important;
+    border: 1px solid #1e293b !important;
+    border-radius: 10px !important;
+}
+
+/* ─── FORM CONTROLS & INPUTS (SELECTBOX, SLIDERS, BUTTONS) ─── */
+/* Selectboxes */
+div[data-baseweb="select"] > div {
+    background-color: #121620 !important;
+    color: #e2e8f0 !important;
+    border: 1px solid #1e293b !important;
+}
+div[data-baseweb="select"] * {
+    color: #e2e8f0 !important;
+}
+/* Popover menus / Dropdowns */
+div[data-baseweb="popover"] ul, ul[role="listbox"] {
+    background-color: #121620 !important;
+    border: 1px solid #1e293b !important;
+}
+li[role="option"] {
+    background-color: #121620 !important;
+    color: #cbd5e1 !important;
+}
+li[role="option"]:hover, li[role="option"][aria-selected="true"] {
+    background-color: #1e293b !important;
+    color: #fff !important;
+}
+
+/* Sliders */
+div[data-testid="stSlider"] > div {
+    color: #e2e8f0 !important;
+}
+div[data-testid="stSlider"] [data-absolute="true"] {
+    background-color: #1e293b !important;
+}
+
+/* Container borders and widgets */
+div[data-testid="stForm"] {
+    background-color: #121620 !important;
+    border: 1px solid #1e293b !important;
+}
+
+/* Info Box */
+.st-info-box {
+    background: rgba(59,130,246,0.05) !important;
+    border: 1px solid #1e293b !important;
+    border-radius: 10px !important;
+}
+div[data-testid="stAlert"] {
+    background-color: #121620 !important;
+    border: 1px solid #1e293b !important;
+    color: #e2e8f0 !important;
+}
+
+/* ─── BUTTONS ─── */
+.stDownloadButton button, .stButton button {
+    background: #1d4ed8 !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    transition: background 0.2s !important;
+}
+.stDownloadButton button:hover, .stButton button:hover {
+    background: #1e40af !important;
+}
+
+/* ─── MISC ─── */
+hr { border-color: #1e293b !important; }
+
+/* ─── PROGRESS BAR ─── */
+.risk-bar-track {
+    height: 6px;
+    background: #1e293b;
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 12px 0 4px;
+}
+.risk-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+/* ─── FOOTER ─── */
+.footer {
+    text-align: center;
+    margin-top: 60px;
+    padding-top: 24px;
+    border-top: 1px solid #1e293b;
+    font-size: 0.78rem;
+    color: #475569 !important;
+    line-height: 1.7;
+}
+</style>
+""", unsafe_allow_html=True)
+
+
+# ──────────────────────────────────────────
+# PLOTLY THEME
+# ──────────────────────────────────────────
+def apply_chart_theme(fig, title="", subtitle=""):
+    fig.update_layout(
+        title=dict(
+            text=f"<b>{title}</b><br><sup style='color:#475569;font-size:11px'>{subtitle}</sup>" if subtitle else f"<b>{title}</b>",
+            x=0.0, xanchor="left",
+            font=dict(family="Space Grotesk, Inter, sans-serif", size=14, color="#e2e8f0"),
+            pad=dict(b=10)
+        ),
+        template="plotly_dark",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font=dict(family="Inter, sans-serif", color="#64748b", size=11),
+        xaxis=dict(
+            gridcolor="rgba(255,255,255,0.04)",
+            zerolinecolor="rgba(255,255,255,0.08)",
+            linecolor="rgba(255,255,255,0.06)",
+            tickfont=dict(size=10),
+        ),
+        yaxis=dict(
+            gridcolor="rgba(255,255,255,0.04)",
+            zerolinecolor="rgba(255,255,255,0.08)",
+            linecolor="rgba(255,255,255,0.06)",
+            tickfont=dict(size=10),
+        ),
+        legend=dict(
+            bgcolor="rgba(10,12,21,0.7)",
+            bordercolor="rgba(255,255,255,0.06)",
+            borderwidth=1,
+            font=dict(size=11)
+        ),
+        margin=dict(l=8, r=8, t=55, b=8),
+        hoverlabel=dict(
+            bgcolor="#0f1422",
+            bordercolor="rgba(59,130,246,0.3)",
+            font=dict(family="Inter", size=12, color="#e2e8f0")
+        )
+    )
+    return fig
+
+
+# ──────────────────────────────────────────
+# RENDER HELPERS
+# ──────────────────────────────────────────
+def render_insight_box(why_matters: str, what_changed: str, what_to_do: str):
+    st.markdown(f"""
+    <div class="insight-box">
+        <div class="insight-header">
+            <span style="font-size:1.1rem">🧠</span>
+            <span class="insight-badge">AI Decision Intelligence</span>
+        </div>
+        <div class="insight-row"><strong>Why it matters:</strong> {why_matters}</div>
+        <div class="insight-row"><strong>What changed:</strong> {what_changed}</div>
+        <div class="insight-row"><strong>Recommended action:</strong> {what_to_do}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+def render_kpi(icon, label, value, delta_text, delta_positive, context=""):
+    delta_color = "#10b981" if delta_positive else "#ef4444"
+    delta_icon = "↑" if delta_positive else "↓"
+    st.markdown(f"""
+    <div class="kpi-card">
+        <span class="kpi-icon">{icon}</span>
+        <div class="kpi-label">{label}</div>
+        <div class="kpi-value" style="color:{("#3b82f6" if delta_positive else "#f59e0b")}">{value}</div>
+        <div class="kpi-delta" style="color:{delta_color}">{delta_icon} {delta_text}</div>
+        <div class="kpi-context">{context}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+def section_header(tag: str, title: str, desc: str = ""):
+    st.markdown(f"""
+    <div class="section-header">
+        <span class="section-tag">{tag}</span>
+        <div class="section-title">{title}</div>
+        <div class="section-desc">{desc}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+def chart_card_header(title: str, subtitle: str = ""):
+    st.markdown(f"""
+    <div class="chart-title">{title}</div>
+    <div class="chart-sub">{subtitle}</div>
+    """, unsafe_allow_html=True)
+
+
+# ──────────────────────────────────────────
+# DATA LOADERS (CACHED)
+# ──────────────────────────────────────────
 @st.cache_data(ttl=300)
 def load_and_preprocess_data(ticker: str, period: str) -> tuple:
-    """
-    Fetches live data (caching it locally) or falls back to SQLite DB if API fails.
-    """
     offline_mode = False
     try:
-        # 1. Fetch live data
         df_raw = fetch_ticker_data(ticker, period)
-        # 2. Write to SQLite cache
         cache_ticker_data(ticker, df_raw)
     except Exception as e:
-        # Fallback to local DB cache
         df_raw = get_cached_ticker_data(ticker)
         if df_raw.empty:
             raise e
         offline_mode = True
-        
-    # Generate technical indicators
     df_basic = compute_basic_features(df_raw)
     df_labeled, risk_meta = define_risk_regimes(df_basic)
-    
     return df_labeled, risk_meta, offline_mode
+
 
 @st.cache_data(ttl=300)
 def get_ml_features(df_labeled: pd.DataFrame) -> tuple:
     return compute_ml_features(df_labeled)
 
+
 @st.cache_resource(ttl=600)
 def run_prophet_model(_df_labeled: pd.DataFrame, forecast_days: int) -> tuple:
     return fit_and_forecast_prophet(_df_labeled, forecast_days)
 
+
 def load_serialized_models(ticker: str) -> tuple:
-    """
-    Decoupled model loader. Pulls trained weights from disk (models/ folder).
-    Triggers batch training pipeline as a bootstrap step if files are missing.
-    """
     xgb_path = f"models/{ticker}_xgb.pkl"
     risk_clf_path = f"models/{ticker}_risk_clf.pkl"
-    
     if not os.path.exists(xgb_path) or not os.path.exists(risk_clf_path):
-        with st.spinner("Initializing first-time model training bootstrap..."):
+        with st.spinner("Initializing first-time model training bootstrap…"):
             run_training_pipeline()
-            
-    with open(f"models/{ticker}_xgb.pkl", "rb") as f:
-        xgb_model = pickle.load(f)
-    with open(f"models/{ticker}_risk_clf.pkl", "rb") as f:
-        rf_clf = pickle.load(f)
-    with open(f"models/{ticker}_risk_le.pkl", "rb") as f:
-        label_encoder = pickle.load(f)
-    with open(f"models/{ticker}_xgb_metrics.pkl", "rb") as f:
-        xgb_metrics = pickle.load(f)
-    with open(f"models/{ticker}_xgb_results.pkl", "rb") as f:
-        test_results = pickle.load(f)
-    with open(f"models/{ticker}_xgb_importance.pkl", "rb") as f:
-        importance_df = pickle.load(f)
-    with open(f"models/{ticker}_risk_metrics.pkl", "rb") as f:
-        rf_metrics = pickle.load(f)
-        
+    with open(f"models/{ticker}_xgb.pkl", "rb") as f:      xgb_model = pickle.load(f)
+    with open(f"models/{ticker}_risk_clf.pkl", "rb") as f:  rf_clf = pickle.load(f)
+    with open(f"models/{ticker}_risk_le.pkl", "rb") as f:   label_encoder = pickle.load(f)
+    with open(f"models/{ticker}_xgb_metrics.pkl", "rb") as f: xgb_metrics = pickle.load(f)
+    with open(f"models/{ticker}_xgb_results.pkl", "rb") as f: test_results = pickle.load(f)
+    with open(f"models/{ticker}_xgb_importance.pkl", "rb") as f: importance_df = pickle.load(f)
+    with open(f"models/{ticker}_risk_metrics.pkl", "rb") as f: rf_metrics = pickle.load(f)
     return xgb_model, rf_clf, label_encoder, xgb_metrics, test_results, importance_df, rf_metrics
 
 
-# ==========================================
-# SIDEBAR FILTERS & SETTINGS
-# ==========================================
-
-st.sidebar.markdown("### 🛠️ System Controller")
-
-ticker_option = st.sidebar.selectbox(
-    "Select Target Asset / Index",
-    options=["ICLN", "XLU", "CEG"],
-    index=0,
-    help="ICLN (Clean Energy ETF), XLU (Utilities ETF), CEG (Clean Energy Producer)"
-)
-
-lookback_option = st.sidebar.selectbox(
-    "Historical Data Range",
-    options=["1y", "2y", "5y"],
-    index=2,
-    help="Longer history improves 200-day moving averages and Prophet's annual seasonality fit."
-)
-
-horizon_option = st.sidebar.slider(
-    "Prophet Forecast Horizon (Days)",
-    min_value=30,
-    max_value=90,
-    value=60,
-    step=15
-)
-
-# Clear Cache / Force Reload button
-st.sidebar.markdown("---")
-st.sidebar.markdown("### 🔄 Cache Control")
-if st.sidebar.button("Force Pipeline Refresh"):
-    st.cache_data.clear()
-    st.cache_resource.clear()
-    with st.spinner("Retraining batch ML models..."):
-        run_training_pipeline()
-    st.success("API Cache Cleared & Models Retrained!")
-    st.rerun()
-
-# Metadata display
-st.sidebar.markdown("---")
-st.sidebar.markdown(f"**Last Sync Date:** {datetime.now().strftime('%Y-%m-%d')}")
-st.sidebar.markdown("**Source:** Live Yahoo Finance API")
-
-
-# ==========================================
-# APP CONTAINER HEADER
-# ==========================================
-
-st.markdown(
-    """
-    <div class="header-container">
-        <h1 class="header-title">⚡ EcoGrid AI</h1>
-        <div class="header-subtitle">Real-Time Renewable Asset Risk Volatility & Forecasting Engine for Tech Data Centers</div>
+# ══════════════════════════════════════════
+# SIDEBAR
+# ══════════════════════════════════════════
+with st.sidebar:
+    # Brand strip
+    st.markdown("""
+    <div class="sb-brand">
+        <div class="sb-brand-title">⚡ EcoGrid AI</div>
+        <div class="sb-brand-sub">Green Asset Volatility Intelligence</div>
     </div>
-    """,
-    unsafe_allow_html=True
-)
+    """, unsafe_allow_html=True)
 
-# Load data with loading spinner
-with st.spinner("Loading pricing series and aligning indicators..."):
+    # ── Asset Selection ──
+    st.markdown('<div class="sb-section">Asset</div>', unsafe_allow_html=True)
+    ticker_option = st.selectbox(
+        "Target Asset",
+        options=["ICLN", "XLU", "CEG"],
+        index=0,
+        format_func=lambda x: {
+            "ICLN": "🌱 ICLN — Clean Energy ETF",
+            "XLU":  "🔋 XLU  — Utilities ETF",
+            "CEG":  "⚡ CEG  — Clean Energy Producer"
+        }[x],
+        label_visibility="collapsed"
+    )
+    lookback_option = st.selectbox(
+        "Historical Range",
+        options=["1y", "2y", "5y"],
+        index=2,
+        format_func=lambda x: {"1y": "1 Year", "2y": "2 Years", "5y": "5 Years"}[x]
+    )
+
+    # ── View Controls ──
+    st.markdown('<hr class="sb-divider">', unsafe_allow_html=True)
+    st.markdown('<div class="sb-section">Chart View</div>', unsafe_allow_html=True)
+    view_window = st.slider(
+        "Historical Window (Days)",
+        min_value=30, max_value=365, value=75, step=5,
+        help="Controls days shown in all historical charts."
+    )
+
+    # ── Forecast Settings ──
+    st.markdown('<hr class="sb-divider">', unsafe_allow_html=True)
+    st.markdown('<div class="sb-section">Forecast</div>', unsafe_allow_html=True)
+    horizon_option = st.slider(
+        "Forecast Horizon (Days)",
+        min_value=30, max_value=90, value=60, step=15,
+        help="How many days ahead Prophet + GARCH will project."
+    )
+    model_selector = st.selectbox(
+        "Model Engine",
+        options=["Prophet + GARCH (Macro)", "XGBoost (Daily Returns)", "Ensemble (All Signals)"],
+        index=2
+    )
+
+    # ── Advanced ──
+    st.markdown('<hr class="sb-divider">', unsafe_allow_html=True)
+    with st.expander("⚙️ Advanced Controls", expanded=False):
+        st.caption("Cache & Pipeline")
+        if st.button("🔄 Force Refresh & Retrain", use_container_width=True):
+            st.cache_data.clear()
+            st.cache_resource.clear()
+            with st.spinner("Retraining ML models…"):
+                run_training_pipeline()
+            st.success("Retrained & cache cleared!")
+            st.rerun()
+
+    # ── Meta ──
+    st.markdown('<hr class="sb-divider">', unsafe_allow_html=True)
+    st.markdown(f"""
+    <div class="sb-meta-row">🕐 Synced: {datetime.now().strftime('%b %d, %Y %H:%M')}</div>
+    <div class="sb-meta-row">📡 Source: Yahoo Finance API</div>
+    """, unsafe_allow_html=True)
+
+
+# ══════════════════════════════════════════
+# DATA LOADING
+# ══════════════════════════════════════════
+with st.spinner("Fetching market data and aligning indicators…"):
     try:
         df_labeled, risk_meta, offline_flag = load_and_preprocess_data(ticker_option, lookback_option)
         train_df, inference_row = get_ml_features(df_labeled)
-        
-        # Pull serialised pickles for inference
         xgb_model, rf_clf, label_encoder, xgb_metrics, test_results, importance_df, rf_metrics = load_serialized_models(ticker_option)
-        
-        # Load other assets for correlation calculations
+
         all_assets = {}
         for tick in ["ICLN", "XLU", "CEG"]:
             if tick == ticker_option:
@@ -280,727 +802,694 @@ with st.spinner("Loading pricing series and aligning indicators..."):
                 except Exception:
                     raw = get_cached_ticker_data(tick)
                     if raw.empty:
-                        st.error(f"Critical local cache missing for {tick}.")
+                        st.error(f"Critical: local cache missing for {tick}.")
                         st.stop()
                 basic = compute_basic_features(raw)
                 all_assets[tick] = basic
-        
+
         correlation_matrix = compute_correlation_matrix(all_assets)
-        
+
     except Exception as e:
-        st.error(f"Error establishing connection: {e}")
+        st.error(f"Unable to load market data: {e}")
         st.stop()
 
-# Display offline status banner if API failed
 if offline_flag:
-    st.warning("⚠️ Connection to Yahoo Finance API failed. Running in offline fallback mode using cached database records.")
+    st.warning("⚠️ Yahoo Finance API offline — running on cached data. Prices reflect last successful sync.")
 
-# ==========================================
-# KPI PANEL (METRIC MATRIX)
-# ==========================================
 
-latest_row = df_labeled.iloc[-1]
-prev_row = df_labeled.iloc[-2]
+# ══════════════════════════════════════════
+# COMPUTE METRICS
+# ══════════════════════════════════════════
+latest_row    = df_labeled.iloc[-1]
+prev_row      = df_labeled.iloc[-2]
+latest_close  = latest_row["Close"]  if not pd.isna(latest_row["Close"])  else 0.0
+latest_vol    = latest_row["Roll_Vol_30d"] if not pd.isna(latest_row["Roll_Vol_30d"]) else 0.0
+price_pct_chg = (latest_close - prev_row["Close"]) / max(prev_row["Close"], 1e-9) * 100
+vol_change    = latest_vol - (prev_row["Roll_Vol_30d"] if not pd.isna(prev_row["Roll_Vol_30d"]) else latest_vol)
+current_risk  = latest_row["Risk_Regime"]
+current_dd    = latest_row["Drawdown"] if not pd.isna(latest_row["Drawdown"]) else 0.0
 
-latest_close = latest_row["Close"]
-price_pct_change = (latest_close - prev_row["Close"]) / prev_row["Close"] * 100
+vol_median   = df_labeled["Roll_Vol_30d"].median()
+max_price    = df_labeled["Close"].max()
+min_drawdown = df_labeled["Drawdown"].min()
+vol_75       = risk_meta.get("vol_75", df_labeled["Roll_Vol_30d"].quantile(0.75))
 
-latest_vol = latest_row["Roll_Vol_30d"]
-vol_change = latest_vol - prev_row["Roll_Vol_30d"]
+for v in [vol_median, max_price, min_drawdown, vol_75]:
+    if pd.isna(v): v = 0.0
 
-current_risk = latest_row["Risk_Regime"]
-current_drawdown = latest_row["Drawdown"]
+rsi = latest_row.get("RSI_14", 50.0)
+if pd.isna(rsi): rsi = 50.0
 
-kpi_cols = st.columns(4)
+vol_risk_score      = min(100.0, (latest_vol / max(0.01, vol_75)) * 75.0)
+drawdown_risk_score = min(100.0, abs(current_dd) / 0.20 * 100.0)
+momentum_risk_score = max(0.0, min(100.0, (50.0 - rsi) * 2.0 + 50.0))
+risk_score = max(0.0, min(100.0, 0.4 * vol_risk_score + 0.4 * drawdown_risk_score + 0.2 * momentum_risk_score))
 
-with kpi_cols[0]:
-    st.markdown(
-        f"""
-        <div class="kpi-card">
-            <div class="kpi-title">Current Market Price</div>
-            <div class="kpi-value" style="color: #3b82f6;">${latest_close:.2f}</div>
-            <div class="kpi-delta" style="color: {'#10b981' if price_pct_change >=0 else '#ef4444'};">
-                {'▲' if price_pct_change >= 0 else '▼'} {abs(price_pct_change):.2f}% (Daily)
+risk_category = (
+    "Extreme" if risk_score >= 85 else
+    "High"    if risk_score >= 60 else
+    "Medium"  if risk_score >= 30 else "Low"
+)
+market_regime = "Volatile" if latest_vol > vol_75 else ("Bullish" if latest_row.get("SMA_50_Ratio", 0) > 0 else "Bearish")
+regime_color = {"Volatile": "#ef4444", "Bullish": "#10b981", "Bearish": "#f59e0b"}[market_regime]
+risk_color   = {"Low": "#10b981", "Medium": "#f59e0b", "High": "#ef4444", "Extreme": "#b91c1c"}[risk_category]
+risk_state_color = {"Low": "#10b981", "Medium": "#f59e0b", "High": "#ef4444"}.get(current_risk, "#f59e0b")
+
+df_visual = df_labeled.iloc[-view_window:].copy()
+
+
+# ══════════════════════════════════════════
+# 1. HERO SECTION
+# ══════════════════════════════════════════
+st.markdown(f"""
+<div class="hero-wrapper">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:24px;">
+        <div>
+            <div class="hero-eyebrow">
+                <span class="live-dot"></span> Live Market Intelligence
+            </div>
+            <div class="hero-title">EcoGrid AI <span style="color:#3b82f6;">Volatility System</span></div>
+            <p class="hero-sub">
+                Predictive green asset volatility analysis and data-center energy procurement intelligence,
+                powered by Prophet, XGBoost, and GARCH risk models.
+            </p>
+            <div class="hero-pills">
+                <div class="hero-pill">
+                    <span class="hp-label">Tracking</span>
+                    <span class="hp-value">{ticker_option}</span>
+                </div>
+                <div class="hero-pill">
+                    <span class="hp-label">Regime</span>
+                    <span class="hp-value" style="color:{regime_color}">{market_regime}</span>
+                </div>
+                <div class="hero-pill">
+                    <span class="hp-label">Risk Level</span>
+                    <span class="hp-value" style="color:{risk_color}">{risk_category}</span>
+                </div>
+                <div class="hero-pill">
+                    <span class="hp-label">Risk Score</span>
+                    <span class="hp-value" style="color:{risk_color}">{risk_score:.0f} / 100</span>
+                </div>
+                <div class="hero-pill">
+                    <span class="hp-label">As of</span>
+                    <span class="hp-value" style="font-size:0.85rem">{datetime.now().strftime('%b %d, %Y')}</span>
+                </div>
             </div>
         </div>
-        """,
-        unsafe_allow_html=True
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+
+# ══════════════════════════════════════════
+# 2. KPI STRIP
+# ══════════════════════════════════════════
+kpi_cols = st.columns(5)
+
+price_avg_pos = latest_close >= latest_row["SMA_50"]
+dd_ok = current_dd > -0.05
+
+with kpi_cols[0]:
+    render_kpi(
+        icon="💵",
+        label="Current Price",
+        value=f"${latest_close:.2f}",
+        delta_text=f"{abs(price_pct_chg):.2f}% today",
+        delta_positive=price_pct_chg >= 0,
+        context=f"vs. 50-Day SMA ${latest_row['SMA_50']:.2f}"
     )
 
 with kpi_cols[1]:
-    st.markdown(
-        f"""
-        <div class="kpi-card">
-            <div class="kpi-title">Annualized Volatility (30D)</div>
-            <div class="kpi-value" style="color: #f59e0b;">{latest_vol:.1%}</div>
-            <div class="kpi-delta" style="color: {'#ef4444' if vol_change >=0 else '#10b981'};">
-                {'▲' if vol_change >= 0 else '▼'} {abs(vol_change)*100:.2f}% vs. Yesterday
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True
+    render_kpi(
+        icon="📊",
+        label="30-Day Volatility",
+        value=f"{latest_vol:.1%}",
+        delta_text=f"{abs(vol_change)*100:.2f}% vs prev",
+        delta_positive=vol_change <= 0,
+        context=f"1Y Median: {vol_median:.1%}"
     )
 
 with kpi_cols[2]:
-    st.markdown(
-        f"""
-        <div class="kpi-card">
-            <div class="kpi-title">Maximum Drawdown</div>
-            <div class="kpi-value" style="color: #ec4899;">{current_drawdown:.2%}</div>
-            <div class="kpi-delta" style="color: #9ca3af;">Peak: ${df_labeled['Close'].max():.2f}</div>
-        </div>
-        """,
-        unsafe_allow_html=True
+    render_kpi(
+        icon="📉",
+        label="Peak Drawdown",
+        value=f"{current_dd:.2%}",
+        delta_text="within limits" if dd_ok else "above threshold",
+        delta_positive=dd_ok,
+        context=f"Hist. Low: {min_drawdown:.2%}"
     )
 
 with kpi_cols[3]:
-    risk_color = "#10B981" if current_risk == "Low" else ("#F59E0B" if current_risk == "Medium" else "#EF4444")
-    st.markdown(
-        f"""
-        <div class="kpi-card">
-            <div class="kpi-title">Current Risk State</div>
-            <div class="kpi-value" style="color: {risk_color};">{current_risk.upper()} RISK</div>
-            <div class="kpi-delta" style="color: #9ca3af;">Dynamic Threshold Engine</div>
-        </div>
-        """,
-        unsafe_allow_html=True
+    render_kpi(
+        icon="🎯",
+        label="RSI (14-Day)",
+        value=f"{rsi:.1f}",
+        delta_text="Overbought" if rsi > 70 else ("Oversold" if rsi < 30 else "Neutral"),
+        delta_positive=30 <= rsi <= 70,
+        context="50 = neutral baseline"
     )
 
-st.markdown("---")
+with kpi_cols[4]:
+    render_kpi(
+        icon="🛡️",
+        label="Risk State",
+        value=current_risk.upper(),
+        delta_text=f"Score: {risk_score:.0f}/100",
+        delta_positive=risk_category in ["Low", "Medium"],
+        context="Dynamic threshold engine"
+    )
 
 
-# ==========================================
-# TABS INTEGRATION
-# ==========================================
-
+# ══════════════════════════════════════════
+# 3. MAIN TABS
+# ══════════════════════════════════════════
 tabs = st.tabs([
-    "🎮 Procurement Sandbox Game",
-    "🧠 1-Minute Energy Primer",
-    "📊 Real-Time Market EDA",
-    "📈 Time Series Forecasting (Prophet+GARCH)",
-    "🤖 Price Predictor (XGBoost Returns)",
-    "⚠️ Risk Regime Classifier",
-    "💡 Procurement Decision Room"
+    "📋  Overview",
+    "📈  Market Intelligence",
+    "🔮  Forecasting Engine",
+    "⚠️  Risk & Strategy"
 ])
 
-# ------------------------------------------
-# TAB 1: 🎮 PROCUREMENT SANDBOX GAME
-# ------------------------------------------
+
+# ─────────────────────────────────────────
+# TAB 1 — OVERVIEW
+# ─────────────────────────────────────────
 with tabs[0]:
-    st.markdown("### 🎮 Data Center Procurement Sandbox Simulator")
-    st.caption("Step into the role of a Tech Data Center Energy Procurement Director. Experiment with hedging strategies using actual live market rates over the past 60 days.")
-    
-    with st.expander("📖 Read Simulator Rules & Strategic Objectives"):
-        st.markdown(
-            """
-            **The Strategic Objective:**
-            Your data center consumes a constant load of **100 MW** daily (around the clock). 
-            You must secure energy contracts to balance three core performance vectors:
-            1. **Minimize Budget Cost**: Keep total energy procurement expenses low.
-            2. **Minimize Budget Volatility**: Reduce standard deviation of daily energy spending.
-            3. **Maximize Carbon-Free Energy (CFE) Match**: Power your operations using clean energy.
-            
-            **Available Contract Vectors:**
-            - **Clean Spot Energy** (linked to your selected Clean Asset price e.g., `ICLN`/`CEG`): Matches 100% CFE, but prices shift daily.
-            - **Regulated Utility Grid** (tracked by defensive utilities ETF `XLU`): Stable prices, but carbon-heavy (only 20% CFE matching credit).
-            
-            **Strategies Compared:**
-            * 🤖 **EcoGrid AI Optimizer**: Dynamic allocation shifting between Spot and Utility depending on model risk regimes.
-            * 🔵 **Green-At-All-Costs**: 100% Clean Spot Energy allocation.
-            * 🔴 **Fossil Regulated Hedger**: 100% Regulated Utility Grid allocation.
-            * 🟡 **Your Custom Allocation**: A fixed compliance ratio set by your slider choice.
-            """
-        )
-        
-    st.markdown("#### ⚙️ Set Custom Strategy Mix")
-    custom_spot_pct = st.slider("Custom Clean Spot Allocation (%)", min_value=0, max_value=100, value=50, step=5)
-    custom_utility_pct = 100 - custom_spot_pct
-    
-    if st.button("⚡ Run Live Market Simulation", key="run_sim"):
-        # Run over last 60 days of historical data
-        sim_days = min(60, len(df_labeled))
-        sim_df = df_labeled.iloc[-sim_days:].copy()
-        
-        # Pull Prices
-        spot_prices = sim_df["Close"].values
-        utility_prices = all_assets["XLU"].iloc[-sim_days:]["Close"].values
-        regimes = sim_df["Risk_Regime"].values
-        
-        # Storage trackers
-        costs_ai, cfe_ai = [], []
-        costs_spot, cfe_spot = [], []
-        costs_utility, cfe_utility = [], []
-        costs_custom, cfe_custom = [], []
-        
-        for i in range(sim_days):
-            sp = spot_prices[i]
-            up = utility_prices[i]
-            
-            # 1. 100% Spot (Green)
-            c_spot = sp * 100 * 24
-            costs_spot.append(c_spot)
-            cfe_spot.append(100.0)
-            
-            # 2. 100% Utility (Hedge)
-            c_util = up * 100 * 24
-            costs_utility.append(c_util)
-            cfe_utility.append(20.0)
-            
-            # 3. Custom Mix
-            c_cust = (sp * (custom_spot_pct / 100) + up * (custom_utility_pct / 100)) * 100 * 24
-            costs_custom.append(c_cust)
-            cfe_custom.append((100.0 * (custom_spot_pct / 100)) + (20.0 * (custom_utility_pct / 100)))
-            
-            # 4. EcoGrid AI Dynamic Allocation
-            regime = regimes[i]
-            if regime == "High":
-                ai_spot_allocation = 0.20
-                ai_utility_allocation = 0.80
-            elif regime == "Medium":
-                ai_spot_allocation = 0.50
-                ai_utility_allocation = 0.50
-            else: # Low Risk
-                ai_spot_allocation = 0.90
-                ai_utility_allocation = 0.10
-                
-            c_ai = (sp * ai_spot_allocation + up * ai_utility_allocation) * 100 * 24
-            costs_ai.append(c_ai)
-            cfe_ai.append((100.0 * ai_spot_allocation) + (20.0 * ai_utility_allocation))
-            
-        # Metrics compiled
-        tot_ai, vol_ai, cfe_ai_avg = sum(costs_ai), np.std(costs_ai), np.mean(cfe_ai)
-        tot_spot, vol_spot, cfe_spot_avg = sum(costs_spot), np.std(costs_spot), np.mean(cfe_spot)
-        tot_util, vol_util, cfe_util_avg = sum(costs_utility), np.std(costs_utility), np.mean(cfe_utility)
-        tot_cust, vol_cust, cfe_cust_avg = sum(costs_custom), np.std(costs_custom), np.mean(cfe_custom)
-        
-        # Leaderboard compilation
-        leaderboard_data = [
-            {"Strategy": "🤖 EcoGrid AI Optimizer", "Total Cost": tot_ai, "Cost Volatility (SD)": vol_ai, "Avg CFE Match": cfe_ai_avg},
-            {"Strategy": "🔵 Green Spot (100% Clean)", "Total Cost": tot_spot, "Cost Volatility (SD)": vol_spot, "Avg CFE Match": cfe_spot_avg},
-            {"Strategy": "🔴 Utility Hedge (100% Hedge)", "Total Cost": tot_util, "Cost Volatility (SD)": vol_util, "Avg CFE Match": cfe_util_avg},
-            {"Strategy": "🟡 Your Custom Mix", "Total Cost": tot_cust, "Cost Volatility (SD)": vol_cust, "Avg CFE Match": cfe_cust_avg}
-        ]
-        
-        # Sort leaderboard by total cost ascending
-        leaderboard_data = sorted(leaderboard_data, key=lambda x: x["Total Cost"])
-        
-        # Assign rank and medals
-        ranks = [1, 2, 3, 4]
-        medals = ["🥇", "🥈", "🥉", "🎗️"]
-        for idx, item in enumerate(leaderboard_data):
-            item["Rank"] = ranks[idx]
-            item["Medal"] = medals[idx]
-            
-        ld_df = pd.DataFrame(leaderboard_data)
-        
-        st.markdown("### 🏆 Performance Leaderboard")
-        st.table(ld_df[["Rank", "Medal", "Strategy", "Total Cost", "Cost Volatility (SD)", "Avg CFE Match"]].style.format({
-            "Total Cost": "${:,.2f}",
-            "Cost Volatility (SD)": "${:,.2f}",
-            "Avg CFE Match": "{:.1f}%"
-        }))
-        
-        # Visualizing cumulative cost
-        fig_cum_cost = go.Figure()
-        dates = sim_df.index
-        fig_cum_cost.add_trace(go.Scatter(x=dates, y=np.cumsum(costs_ai), name="EcoGrid AI Dynamic", line=dict(color="#10b981", width=2.5)))
-        fig_cum_cost.add_trace(go.Scatter(x=dates, y=np.cumsum(costs_spot), name="100% Spot (Green)", line=dict(color="#3b82f6", width=2)))
-        fig_cum_cost.add_trace(go.Scatter(x=dates, y=np.cumsum(costs_utility), name="100% Utility (Hedge)", line=dict(color="#ef4444", width=2)))
-        fig_cum_cost.add_trace(go.Scatter(x=dates, y=np.cumsum(costs_custom), name="Your Custom Mix", line=dict(color="#f59e0b", width=2, dash="dash")))
-        fig_cum_cost.update_layout(
-            title="Cumulative Budget Expenditure Comparison (60-Day Window)",
-            template="plotly_dark",
-            xaxis_title="Date",
-            yaxis_title="Total Cost ($)",
-            hovermode="x unified"
-        )
-        st.plotly_chart(fig_cum_cost, use_container_width=True)
-        
-        # Visualizing Cost vs CFE Match
-        st.markdown("#### Cost vs CFE Match Side-by-Side")
-        plot_cols = st.columns(2)
-        with plot_cols[0]:
-            fig_bar_cost = px.bar(
-                ld_df, x="Strategy", y="Total Cost", 
-                title="Total Cost ($)", 
-                color="Strategy",
-                color_discrete_map={
-                    "🤖 EcoGrid AI Optimizer": "#10b981",
-                    "🔵 Green Spot (100% Clean)": "#3b82f6",
-                    "🔴 Utility Hedge (100% Hedge)": "#ef4444",
-                    "🟡 Your Custom Mix": "#f59e0b"
-                }
-            )
-            fig_bar_cost.update_layout(template="plotly_dark")
-            st.plotly_chart(fig_bar_cost, use_container_width=True)
-        with plot_cols[1]:
-            fig_bar_cfe = px.bar(
-                ld_df, x="Strategy", y="Avg CFE Match", 
-                title="Carbon-Free Energy Matching (%)", 
-                color="Strategy",
-                color_discrete_map={
-                    "🤖 EcoGrid AI Optimizer": "#10b981",
-                    "🔵 Green Spot (100% Clean)": "#3b82f6",
-                    "🔴 Utility Hedge (100% Hedge)": "#ef4444",
-                    "🟡 Your Custom Mix": "#f59e0b"
-                }
-            )
-            fig_bar_cfe.update_layout(template="plotly_dark")
-            st.plotly_chart(fig_bar_cfe, use_container_width=True)
-            
-        # Dynamic AI commentary
-        saved_amount = tot_spot - tot_ai
-        risk_reduction = (vol_spot - vol_ai) / (vol_spot + 1e-9) * 100
-        
-        st.info(
-            f"💡 **Dynamic AI Insight:** The **EcoGrid AI Dynamic Strategy** saved your data center **${saved_amount:,.2f}** "
-            f"in procurement costs relative to the Green Spot strategy and reduced daily budget volatility "
-            f"by **{risk_reduction:.1f}%**, all while establishing a healthy CFE match score of **{cfe_ai_avg:.1f}%**."
-        )
 
+    # ── Risk Engine Panel ──
+    section_header("Real-time Diagnostics", "Risk Engine Status",
+                   "Multivariate threat indicators powered by volatility, drawdown, and momentum signals.")
 
-# ------------------------------------------
-# TAB 2: 🧠 1-MINUTE ENERGY PRIMER
-# ------------------------------------------
-with tabs[1]:
-    st.markdown("### 🧠 1-Minute Energy Portfolio Primer")
-    st.caption("New to energy markets? Play with interactive sliders below to understand the core financial concepts used in this platform.")
-    
-    concept_choice = st.selectbox(
-        "Select a Concept to Visualize",
-        options=[
-            "📈 Volatility (Market Turbulence)",
-            "📉 Drawdown (Peak-to-Trough Decline)",
-            "🛡️ Hedging (Risk Mitigation)",
-            "🌿 24/7 Carbon-Free Energy (CFE Match)"
-        ]
+    st.markdown(f"""
+    <div class="risk-panel">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+            <div>
+                <div style="font-size:1rem; font-weight:700; color:#e2e8f0;">Overall Risk Score</div>
+                <div style="font-size:0.8rem; color:#64748b; margin-top:2px;">Composite of volatility, drawdown & momentum</div>
+            </div>
+            <div style="text-align:right;">
+                <span style="font-family:'Space Grotesk',sans-serif; font-size:2.4rem; font-weight:800; color:{risk_color};">{risk_score:.0f}</span>
+                <span style="font-size:1rem; color:#475569;">/ 100</span>
+                <div style="font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:{risk_color}; margin-top:3px;">{risk_category} Risk</div>
+            </div>
+        </div>
+        <div class="risk-bar-track">
+            <div class="risk-bar-fill" style="width:{risk_score}%; background:{risk_color};"></div>
+        </div>
+        <div class="risk-factors-grid">
+            <div class="risk-factor-card">
+                <div class="rf-label">Volatility Pressure</div>
+                <div class="rf-value" style="color:{'#ef4444' if latest_vol > vol_median else '#10b981'};">
+                    {latest_vol:.1%} {'↑' if latest_vol > vol_median else '↓'}
+                </div>
+                <div class="rf-context">Median: {vol_median:.1%}</div>
+            </div>
+            <div class="risk-factor-card">
+                <div class="rf-label">Drawdown Impact</div>
+                <div class="rf-value" style="color:{'#ef4444' if current_dd < -0.05 else '#10b981'};">
+                    {current_dd:.2%} {'↑' if current_dd < -0.05 else '↓'}
+                </div>
+                <div class="rf-context">Hedge trigger: −5.0%</div>
+            </div>
+            <div class="risk-factor-card">
+                <div class="rf-label">Trend Momentum</div>
+                <div class="rf-value" style="color:{'#10b981' if latest_row.get('SMA_50_Ratio', 0) > 0 else '#ef4444'};">
+                    {market_regime} {'↑' if latest_row.get('SMA_50_Ratio', 0) > 0 else '↓'}
+                </div>
+                <div class="rf-context">SMA-50 ratio: {latest_row.get('SMA_50_Ratio', 0):.1%}</div>
+            </div>
+            <div class="risk-factor-card">
+                <div class="rf-label">RSI Signal</div>
+                <div class="rf-value" style="color:{'#f59e0b' if rsi > 70 or rsi < 30 else '#10b981'};">
+                    {rsi:.1f} {'⚠' if rsi > 70 or rsi < 30 else '✓'}
+                </div>
+                <div class="rf-context">{'Overbought' if rsi > 70 else ('Oversold' if rsi < 30 else 'Neutral zone')}</div>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # ── Price overview chart ──
+    section_header("Market Snapshot", f"{ticker_option} Price & Trend Overview",
+                   f"Closing price over the last {view_window} days with SMA overlays.")
+
+    fig_price = go.Figure()
+    fig_price.add_trace(go.Scatter(
+        x=df_visual.index, y=df_visual["Close"],
+        name="Close Price", fill="tozeroy",
+        fillcolor="rgba(59,130,246,0.06)",
+        line=dict(color="#3b82f6", width=2.5)
+    ))
+    fig_price.add_trace(go.Scatter(
+        x=df_visual.index, y=df_visual["SMA_50"],
+        name="50-Day SMA", line=dict(color="#10b981", width=1.5, dash="dash")
+    ))
+    fig_price.add_trace(go.Scatter(
+        x=df_visual.index, y=df_visual["SMA_200"],
+        name="200-Day SMA", line=dict(color="#ec4899", width=1.5, dash="dot")
+    ))
+    apply_chart_theme(fig_price, f"{ticker_option} — Price & Moving Averages",
+                      f"{view_window}-day window · SMA-50 and SMA-200 overlays")
+    st.plotly_chart(fig_price, use_container_width=True)
+
+    # ── AI Insight ──
+    render_insight_box(
+        why_matters=f"The {ticker_option} market is currently classified as {current_risk.upper()} risk. Knowing this state helps optimize energy contract mix ratios between spot purchases and defensive utility hedges.",
+        what_changed=f"Volatility has reached {latest_vol:.1%} (median: {vol_median:.1%}), with {market_regime.lower()} momentum and a current drawdown of {current_dd:.2%}.",
+        what_to_do=f"Based on the {current_risk.upper()} classification, consult the Risk & Strategy tab for dynamic volume allocation recommendations."
     )
-    
-    primer_cols = st.columns([1, 2])
-    
-    with primer_cols[0]:
-        if "Volatility" in concept_choice:
-            st.markdown("#### What is Volatility?")
-            st.markdown(
-                """
-                Volatility measures how wildly an asset price swings up and down. 
-                * **High Volatility**: Prices bounce around rapidly (e.g. Clean Energy ICLN during weather extremes).
-                * **Low Volatility**: Prices change slowly and steadily (e.g. Regulated Utilities XLU).
-                
-                **✈️ The Analogy:**
-                Think of volatility as flight turbulence. Regulated utilities are a smooth cruise; clean energy is flying through a storm.
-                """
-            )
-            vol_slider = st.slider("Set Turbulence Level (Volatility)", min_value=5, max_value=80, value=25, step=5)
-            
-        elif "Drawdown" in concept_choice:
-            st.markdown("#### What is Drawdown?")
-            st.markdown(
-                """
-                Drawdown measures the peak-to-trough decline of an asset. It tells energy managers: 
-                *\"If I bought at the absolute peak, how much money did I lose at the bottom?\"*
-                
-                **📉 Why it matters:**
-                Data center budgets cannot sustain sudden 30% drops in asset values. Tracking drawdown helps set risk limits.
-                """
-            )
-            dd_slider = st.slider("Simulate Peak Drop (%)", min_value=0, max_value=50, value=20, step=5)
-            
-        elif "Hedging" in concept_choice:
-            st.markdown("#### What is Hedging?")
-            st.markdown(
-                """
-                Hedging means buying a defensive asset (like utilities) to offset losses in your primary asset (clean energy).
-                
-                **🛡️ The Strategy:**
-                When clean energy volatility is high, we dynamically buy utility power to smooth out our total cost curve.
-                """
-            )
-            hedge_ratio = st.slider("Hedge Ratio (Utility Percentage)", min_value=0, max_value=100, value=40, step=10)
-            
-        else: # CFE
-            st.markdown("#### What is 24/7 CFE Match?")
-            st.markdown(
-                """
-                24/7 Carbon-Free Energy (CFE) matching means sourcing zero-carbon electricity to power your load every single hour of the day.
-                
-                * **Spot solar/wind**: 100% CFE match.
-                * **Utility Grid mix**: 20% CFE match (grid has coal/gas baseline).
-                
-                **🌿 The Goal:**
-                Maximize CFE matching while keeping energy costs stable.
-                """
-            )
-            cfe_slider = st.slider("Clean Energy Mix Ratio (%)", min_value=0, max_value=100, value=70, step=10)
-            
-    with primer_cols[1]:
-        if "Volatility" in concept_choice:
-            np.random.seed(42)
-            days = 60
-            noise = np.random.normal(0, vol_slider / 100, days)
-            prices = 100 * np.exp(np.cumsum(noise - 0.5 * (vol_slider / 100) ** 2))
-            
-            fig_vol_sim = px.line(
-                x=pd.date_range(end=datetime.now(), periods=days),
-                y=prices,
-                title=f"Synthetic Asset Path (Volatility: {vol_slider}%)",
-                labels={"x": "Day", "y": "Mock Price ($)"}
-            )
-            fig_vol_sim.update_traces(line_color="#f59e0b", line_width=2)
-            fig_vol_sim.update_layout(template="plotly_dark")
-            st.plotly_chart(fig_vol_sim, use_container_width=True)
-            
-        elif "Drawdown" in concept_choice:
-            np.random.seed(10)
-            days = 30
-            base = np.linspace(100, 100 - dd_slider, days)
-            prices = base + np.random.normal(0, 1.5, days)
-            prices[0] = 100
-            prices[-1] = 100 - dd_slider
-            
-            fig_dd_sim = go.Figure()
-            dates = pd.date_range(end=datetime.now(), periods=days)
-            fig_dd_sim.add_trace(go.Scatter(x=dates, y=prices, name="Price Path", line=dict(color="#ec4899", width=2)))
-            fig_dd_sim.add_trace(go.Scatter(x=[dates[0]], y=[prices[0]], name="Peak ($100)", mode="markers", marker=dict(size=12, color="#10b981")))
-            fig_dd_sim.add_trace(go.Scatter(x=[dates[-1]], y=[prices[-1]], name=f"Trough (${prices[-1]:.1f})", mode="markers", marker=dict(size=12, color="#ef4444")))
-            fig_dd_sim.update_layout(
-                title=f"Drawdown Simulation (Max Drop: -{dd_slider}%)",
-                template="plotly_dark",
-                xaxis_title="Day",
-                yaxis_title="Mock Price ($)"
-            )
-            st.plotly_chart(fig_dd_sim, use_container_width=True)
-            
-        elif "Hedging" in concept_choice:
-            np.random.seed(100)
-            days = 60
-            spot_noise = np.random.normal(0, 0.05, days)
-            util_noise = np.random.normal(0, 0.015, days)
-            
-            spot_prices = 100 * np.exp(np.cumsum(spot_noise - 0.5 * 0.05**2))
-            util_prices = 100 * np.exp(np.cumsum(util_noise - 0.5 * 0.015**2))
-            
-            hedged_prices = (spot_prices * (1 - hedge_ratio/100)) + (util_prices * (hedge_ratio/100))
-            
-            fig_hedge_sim = go.Figure()
-            dates = pd.date_range(end=datetime.now(), periods=days)
-            fig_hedge_sim.add_trace(go.Scatter(x=dates, y=spot_prices, name="Clean Spot (Volatile)", line=dict(color="#3b82f6", width=1.5, dash="dot")))
-            fig_hedge_sim.add_trace(go.Scatter(x=dates, y=util_prices, name="Utility (Stable)", line=dict(color="#ef4444", width=1.5, dash="dot")))
-            fig_hedge_sim.add_trace(go.Scatter(x=dates, y=hedged_prices, name=f"Hedged Mix ({hedge_ratio}% Utility)", line=dict(color="#10b981", width=3)))
-            fig_hedge_sim.update_layout(
-                title="Smoothing the Price Path using Hedging",
-                template="plotly_dark",
-                xaxis_title="Day",
-                yaxis_title="Mock Price ($)"
-            )
-            st.plotly_chart(fig_hedge_sim, use_container_width=True)
-            
-        else: # CFE
-            clean_contrib = cfe_slider
-            fossil_contrib = 100 - cfe_slider
-            cfe_percentage = (clean_contrib * 1.0) + (fossil_contrib * 0.2)
-            
-            fig_cfe_sim = px.pie(
-                names=["Carbon-Free Energy Source", "Fossil Grid Energy Source"],
-                values=[cfe_percentage, 100 - cfe_percentage],
-                title=f"Total Hourly Energy Mix (CFE Score: {cfe_percentage:.1f}%)",
-                color_discrete_sequence=["#10b981", "#374151"]
-            )
-            fig_cfe_sim.update_layout(template="plotly_dark")
-            st.plotly_chart(fig_cfe_sim, use_container_width=True)
 
 
-# ------------------------------------------
-# TAB 3: REAL-TIME MARKET EDA
-# ------------------------------------------
-with tabs[2]:
-    st.markdown("### Market Intelligence Exploratory Analysis")
-    st.caption("All visual analytics update dynamically with every incoming data refresh.")
-    
-    eda_col1, eda_col2 = st.columns(2)
-    
-    with eda_col1:
-        # 1. Price Trends (Closing Prices & Moving Averages)
-        fig_price = go.Figure()
-        fig_price.add_trace(go.Scatter(x=df_labeled.index, y=df_labeled["Close"], name="Closing Price", line=dict(color="#3b82f6", width=2)))
-        fig_price.add_trace(go.Scatter(x=df_labeled.index, y=df_labeled["SMA_50"], name="50-day SMA", line=dict(color="#f59e0b", width=1.5, dash="dash")))
-        fig_price.add_trace(go.Scatter(x=df_labeled.index, y=df_labeled["SMA_200"], name="200-day SMA", line=dict(color="#ec4899", width=1.5, dash="dot")))
-        fig_price.update_layout(
-            title=f"{ticker_option} Historical Price and Moving Averages",
-            template="plotly_dark",
-            xaxis_title="Date",
-            yaxis_title="Price ($)",
-            hovermode="x unified",
-            legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01)
-        )
-        st.plotly_chart(fig_price, use_container_width=True)
-        
-        # 2. Drawdowns
-        fig_dd = px.area(df_labeled, x=df_labeled.index, y="Drawdown", title=f"{ticker_option} Peak-to-Trough Drawdown Curve")
-        fig_dd.update_traces(line_color="#ef4444", fillcolor="rgba(239, 68, 68, 0.2)")
-        fig_dd.update_layout(template="plotly_dark", xaxis_title="Date", yaxis_title="Drawdown (%)")
-        st.plotly_chart(fig_dd, use_container_width=True)
-        
-    with eda_col2:
-        # 3. Volatility Windows comparison
+# ─────────────────────────────────────────
+# TAB 2 — MARKET INTELLIGENCE
+# ─────────────────────────────────────────
+with tabs[1]:
+    section_header("Why Is It Happening?", "Volatility & Pricing Drivers",
+                   "Contextual insights, historical correlations, and asset distribution relationships.")
+
+    # Context cards
+    ctx_col1, ctx_col2 = st.columns(2)
+    with ctx_col1:
+        with st.container(border=True):
+            st.markdown("**⚡ Volatility Context**")
+            st.markdown(
+                f"The 30-day annualized rolling volatility for **{ticker_option}** is currently **{latest_vol:.1%}**, "
+                f"against a historic median of **{vol_median:.1%}**. "
+                f"Daily return swings are **{'wider' if latest_vol > vol_median else 'tighter'}** than average, driven by "
+                "weather events disrupting renewable generation capacity, fuel index price spikes, and power grid reserve margin changes."
+            )
+    with ctx_col2:
+        with st.container(border=True):
+            st.markdown("**📉 Drawdown Context**")
+            st.markdown(
+                f"Peak-to-trough drawdown shows the price decline from the all-time high of **${max_price:.2f}**. "
+                f"The current correction is **{current_dd:.2%}** against a historical extreme of **{min_drawdown:.2%}**. "
+                "Severe drawdowns mark optimal long-term entry points or warn of rising default risk in forward contracts."
+            )
+
+    st.markdown("")
+
+    # 2×2 chart grid
+    chart_r1c1, chart_r1c2 = st.columns(2)
+    with chart_r1c1:
         fig_vol = go.Figure()
-        fig_vol.add_trace(go.Scatter(x=df_labeled.index, y=df_labeled["Roll_Vol_7d"], name="7-day Vol (Short)", line=dict(color="#34d399", width=1.5)))
-        fig_vol.add_trace(go.Scatter(x=df_labeled.index, y=df_labeled["Roll_Vol_30d"], name="30-day Vol (Long)", line=dict(color="#f59e0b", width=2)))
-        fig_vol.update_layout(
-            title=f"{ticker_option} Annualized Rolling Volatility",
-            template="plotly_dark",
-            xaxis_title="Date",
-            yaxis_title="Annualized Volatility",
-            hovermode="x unified",
-            legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01)
-        )
+        fig_vol.add_trace(go.Scatter(
+            x=df_visual.index, y=df_visual["Roll_Vol_7d"],
+            name="7-Day Vol", line=dict(color="#34d399", width=1.5)
+        ))
+        fig_vol.add_trace(go.Scatter(
+            x=df_visual.index, y=df_visual["Roll_Vol_30d"],
+            name="30-Day Vol", fill="tozeroy",
+            fillcolor="rgba(245,158,11,0.08)",
+            line=dict(color="#f59e0b", width=2.5)
+        ))
+        apply_chart_theme(fig_vol, "Annualized Rolling Volatility",
+                          "Short-term (7d) vs. medium-term (30d)")
         st.plotly_chart(fig_vol, use_container_width=True)
-        
-        # 4. Correlation Heatmap
+
+    with chart_r1c2:
+        fig_dd = px.area(df_visual, x=df_visual.index, y="Drawdown")
+        fig_dd.update_traces(line_color="#ef4444", fillcolor="rgba(239,68,68,0.1)")
+        apply_chart_theme(fig_dd, "Peak-to-Trough Drawdown",
+                          "Percentage decline from rolling high")
+        st.plotly_chart(fig_dd, use_container_width=True)
+
+    chart_r2c1, chart_r2c2 = st.columns(2)
+    with chart_r2c1:
+        fig_rsi = go.Figure()
+        if "RSI_14" in df_visual.columns:
+            fig_rsi.add_hline(y=70, line_dash="dot", line_color="rgba(239,68,68,0.5)",
+                              annotation_text="Overbought (70)", annotation_position="top right")
+            fig_rsi.add_hline(y=30, line_dash="dot", line_color="rgba(16,185,129,0.5)",
+                              annotation_text="Oversold (30)", annotation_position="bottom right")
+            fig_rsi.add_trace(go.Scatter(
+                x=df_visual.index, y=df_visual["RSI_14"],
+                name="RSI-14", line=dict(color="#a78bfa", width=2)
+            ))
+        apply_chart_theme(fig_rsi, "RSI — Relative Strength Index (14-Day)",
+                          "Momentum oscillator: 30–70 = neutral zone")
+        st.plotly_chart(fig_rsi, use_container_width=True)
+
+    with chart_r2c2:
         fig_corr = px.imshow(
-            correlation_matrix,
-            text_auto=".2f",
-            aspect="auto",
-            color_continuous_scale="RdBu_r",
-            title="Dynamic Asset Correlation Heatmap (Daily Returns)"
+            correlation_matrix, text_auto=".2f",
+            aspect="auto", color_continuous_scale="Blues"
         )
-        fig_corr.update_layout(template="plotly_dark")
+        apply_chart_theme(fig_corr, "Asset Correlation Heatmap",
+                          "Pairwise return correlations: ICLN · XLU · CEG")
         st.plotly_chart(fig_corr, use_container_width=True)
 
+    max_corr_partner = correlation_matrix[ticker_option].drop(ticker_option).idxmax()
+    max_corr_val = correlation_matrix[ticker_option].drop(ticker_option).max()
+    render_insight_box(
+        why_matters="Assets exhibit high daily return correlations during broad macro shifts, while decoupling signals localized supply/demand dynamics.",
+        what_changed=f"{ticker_option} currently has its strongest correlation with {max_corr_partner} at {max_corr_val:.2f}.",
+        what_to_do="If correlation with defensive XLU exceeds 0.70, a systemic utilities-driven regime is active — consider diversifying supply chain locations."
+    )
 
-# ------------------------------------------
-# TAB 4: TIME SERIES FORECASTING (PROPHET+GARCH)
-# ------------------------------------------
-with tabs[3]:
-    st.markdown("### Prophet + GARCH(1,1) Dynamic Volatility Forecasting")
-    st.caption("Hybrid forecasting: Prophet models the additive trend, while a custom maximum-likelihood GARCH(1,1) solver scales forecast uncertainty bands dynamically.")
-    
-    with st.spinner("Fitting Prophet + GARCH residuals..."):
+
+# ─────────────────────────────────────────
+# TAB 3 — FORECASTING ENGINE
+# ─────────────────────────────────────────
+with tabs[2]:
+    section_header("What Is the Projection?", "Predictive Machine Learning Engine",
+                   f"Prophet macro trend · XGBoost short-term returns · GARCH dynamic volatility bands · {horizon_option}-day horizon")
+
+    with st.spinner("Fitting Prophet + GARCH residuals…"):
         model, forecast, prophet_metrics = run_prophet_model(df_labeled, horizon_option)
-    
-    # Showcase Error Metrics
-    met_cols = st.columns(3)
-    met_cols[0].metric("In-Sample MAE", f"${prophet_metrics['MAE']:.2f}", help="Mean Absolute Error in dollar terms.")
-    met_cols[1].metric("In-Sample RMSE", f"${prophet_metrics['RMSE']:.2f}", help="Root Mean Squared Error.")
-    met_cols[2].metric("In-Sample MAPE", f"{prophet_metrics['MAPE']:.2f}%", help="Mean Absolute Percentage Error.")
-    
-    # 1. Plot Forecast with confidence bands
-    fig_fc = go.Figure()
-    # Actuals
-    fig_fc.add_trace(go.Scatter(x=df_labeled.index, y=df_labeled["Close"], name="Actual Close", line=dict(color="#3b82f6", width=2)))
-    # Forecasted
+
+    # ── Model performance strip ──
+    r2 = xgb_metrics["R2"]
+    da = xgb_metrics["Directional_Accuracy"]
+
+    m_col1, m_col2, m_col3, m_col4 = st.columns(4)
+    with m_col1:
+        st.metric(
+            label="XGBoost R² Score",
+            value=f"{r2:.4f}",
+            delta="High variance explained" if r2 >= 0.8 else ("Moderate" if r2 >= 0.5 else "Low – warning"),
+            delta_color="normal" if r2 >= 0.5 else "inverse"
+        )
+    with m_col2:
+        st.metric(
+            label="Directional Accuracy",
+            value=f"{da:.1f}%",
+            delta="Satisfactory" if da >= 50 else "Needs improvement",
+            delta_color="normal" if da >= 50 else "inverse"
+        )
+    with m_col3:
+        st.metric(
+            label="Prophet MAE",
+            value=f"${prophet_metrics['MAE']:.2f}",
+            delta="Mean absolute forecast error"
+        )
+    with m_col4:
+        next_day_price = predict_next_day_xgb(xgb_model, inference_row, latest_close)
+        direction = "↑" if next_day_price > latest_close else "↓"
+        st.metric(
+            label="XGB Tomorrow Target",
+            value=f"${next_day_price:.2f}",
+            delta=f"{direction} {abs(next_day_price - latest_close):.2f} vs today",
+            delta_color="normal" if next_day_price > latest_close else "inverse"
+        )
+
+    st.markdown("")
+
+    # ── Prophet + GARCH main chart ──
+    section_header("Trend Projection", f"Prophet + GARCH {horizon_option}-Day Forecast",
+                   "Actual price history with forward trend line and dynamic uncertainty band.")
+
     future_forecast = forecast.iloc[-horizon_option:]
-    fig_fc.add_trace(go.Scatter(x=future_forecast["ds"], y=future_forecast["yhat"], name="Forecasted Trend", line=dict(color="#10b981", width=2)))
-    # Confidence interval (Shaded)
+    fig_fc = go.Figure()
+    fig_fc.add_trace(go.Scatter(
+        x=df_visual.index, y=df_visual["Close"],
+        name="Actual Close", line=dict(color="#3b82f6", width=2.5)
+    ))
+    fig_fc.add_trace(go.Scatter(
+        x=future_forecast["ds"], y=future_forecast["yhat"],
+        name="Forecast (Prophet)", line=dict(color="#10b981", width=2.5)
+    ))
     fig_fc.add_trace(go.Scatter(
         x=pd.concat([future_forecast["ds"], future_forecast["ds"][::-1]]),
         y=pd.concat([future_forecast["yhat_upper"], future_forecast["yhat_lower"][::-1]]),
-        fill="toself",
-        fillcolor="rgba(16, 185, 129, 0.15)",
-        line=dict(color="rgba(255,255,255,0)"),
-        hoverinfo="skip",
-        showlegend=True,
-        name="95% Dynamic GARCH Band"
+        fill="toself", fillcolor="rgba(16,185,129,0.08)",
+        line=dict(color="rgba(0,0,0,0)"),
+        hoverinfo="skip", name="95% GARCH Band"
     ))
-    
-    fig_fc.update_layout(
-        title=f"Prophet + GARCH {horizon_option}-Day Dynamic Forecast Projection for {ticker_option}",
-        template="plotly_dark",
-        xaxis_title="Date",
-        yaxis_title="Price ($)",
-        hovermode="x unified"
-    )
+    apply_chart_theme(fig_fc, f"{ticker_option} — {horizon_option}-Day Dynamic Forecast",
+                      "Green band = dynamic GARCH uncertainty interval")
     st.plotly_chart(fig_fc, use_container_width=True)
-    
-    # 2. Seasonality Components
-    st.markdown("#### Seasonality Breakdowns")
-    comp_col1, comp_col2 = st.columns(2)
-    
-    with comp_col1:
-        weekly = forecast.groupby(forecast["ds"].dt.dayofweek)["weekly"].mean().reset_index()
-        weekly["Day"] = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-        fig_week = px.bar(weekly, x="Day", y="weekly", title="Weekly Seasonality Component Effect", color_discrete_sequence=["#10b981"])
-        fig_week.update_layout(template="plotly_dark", yaxis_title="Additive Adjustment ($)")
-        st.plotly_chart(fig_week, use_container_width=True)
-        
-    with comp_col2:
-        yearly = forecast.groupby(forecast["ds"].dt.month)["yearly"].mean().reset_index()
-        yearly["Month"] = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-        fig_year = px.line(yearly, x="Month", y="yearly", title="Annual Seasonality Component Effect", color_discrete_sequence=["#f59e0b"])
-        fig_year.update_layout(template="plotly_dark", yaxis_title="Additive Adjustment ($)")
-        st.plotly_chart(fig_year, use_container_width=True)
 
+    # ── XGBoost walk-forward + feature importance ──
+    section_header("Model Validation", "XGBoost Walk-Forward Validation",
+                   "Reconstructed price predictions vs. actual prices on held-out test data.")
 
-# ------------------------------------------
-# TAB 5: PRICE PREDICTOR (XGBOOST RETURNS)
-# ------------------------------------------
-with tabs[4]:
-    st.markdown("### Next-Day Price Forecasting via XGBoost (Log Returns)")
-    st.caption("Decoupled supervised model. Trained on stationary log returns to extrapolate new pricing regimes correctly.")
-    
-    xgb_cols = st.columns(4)
-    xgb_cols[0].metric("Validation Set MAE", f"${xgb_metrics['MAE']:.2f}")
-    xgb_cols[1].metric("Validation Set RMSE", f"${xgb_metrics['RMSE']:.2f}")
-    xgb_cols[2].metric("Validation Set R² Score", f"{xgb_metrics['R2']:.4f}")
-    xgb_cols[3].metric("Directional Accuracy (Sign)", f"{xgb_metrics['Directional_Accuracy']:.1f}%")
-    
-    st.markdown("---")
-    
-    xgb_viz1, xgb_viz2 = st.columns([2, 1])
-    
-    with xgb_viz1:
+    xgb_c1, xgb_c2 = st.columns([2, 1])
+    with xgb_c1:
         fig_xgb = go.Figure()
-        fig_xgb.add_trace(go.Scatter(x=test_results.index, y=test_results["Actual"], name="Actual Price", line=dict(color="#3b82f6", width=2)))
-        fig_xgb.add_trace(go.Scatter(x=test_results.index, y=test_results["Predicted"], name="XGBoost Reconstructed Price", line=dict(color="#ec4899", width=1.5, dash="dash")))
-        fig_xgb.update_layout(
-            title="XGBoost Walk-Forward Validation Predictions vs. Actual Closing Prices (Unseen Test Window)",
-            template="plotly_dark",
-            xaxis_title="Date",
-            yaxis_title="Price ($)",
-            hovermode="x unified"
-        )
+        fig_xgb.add_trace(go.Scatter(
+            x=test_results.index, y=test_results["Actual"],
+            name="Actual Price", line=dict(color="#3b82f6", width=2)
+        ))
+        fig_xgb.add_trace(go.Scatter(
+            x=test_results.index, y=test_results["Predicted"],
+            name="XGBoost Predicted", line=dict(color="#ec4899", width=1.5, dash="dash")
+        ))
+        apply_chart_theme(fig_xgb, "Walk-Forward Validation",
+                          "Predictions vs. actuals on test set")
         st.plotly_chart(fig_xgb, use_container_width=True)
-        
-    with xgb_viz2:
+
+    with xgb_c2:
         fig_imp = px.bar(
-            importance_df.sort_values(by="Importance", ascending=True),
-            y="Feature",
-            x="Importance",
-            orientation="h",
-            title="XGBoost Feature Importance Ranking",
-            color_discrete_sequence=["#ec4899"]
+            importance_df.sort_values("Importance", ascending=True),
+            y="Feature", x="Importance", orientation="h"
         )
-        fig_imp.update_layout(template="plotly_dark")
+        fig_imp.update_traces(marker_color="#a78bfa", marker_line_width=0)
+        apply_chart_theme(fig_imp, "Feature Importance",
+                          "Top drivers of XGBoost predictions")
         st.plotly_chart(fig_imp, use_container_width=True)
 
+    # ── Seasonality ──
+    with st.expander("📅 Seasonality Component Breakdown", expanded=False):
+        s_col1, s_col2 = st.columns(2)
+        with s_col1:
+            weekly = forecast.groupby(forecast["ds"].dt.dayofweek)["weekly"].mean().reset_index()
+            weekly["Day"] = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+            fig_week = px.bar(weekly, x="Day", y="weekly")
+            fig_week.update_traces(marker_color="#10b981", marker_line_width=0)
+            apply_chart_theme(fig_week, "Weekly Seasonality Effect",
+                              "Average price effect by day of week")
+            st.plotly_chart(fig_week, use_container_width=True)
+        with s_col2:
+            yearly = forecast.groupby(forecast["ds"].dt.month)["yearly"].mean().reset_index()
+            yearly["Month"] = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+            fig_year = px.line(yearly, x="Month", y="yearly", markers=True)
+            fig_year.update_traces(line_color="#f59e0b", line_width=2.5, marker_color="#f59e0b")
+            apply_chart_theme(fig_year, "Annual Seasonality Effect",
+                              "Average price effect by month of year")
+            st.plotly_chart(fig_year, use_container_width=True)
 
-# ------------------------------------------
-# TAB 6: RISK REGIME CLASSIFIER
-# ------------------------------------------
-with tabs[5]:
-    st.markdown("### Risk Regime Classification Engine")
-    st.caption("Supervised Random Forest classifier mapping multivariate pricing states to Low, Medium, and High volatility risk bands.")
-    
-    st.markdown(f"#### Classifier Accuracy: `{rf_metrics['Accuracy']:.1%}`")
-    
-    # Showcase classification report metrics
-    st.markdown("##### Out-of-Sample Validation Report (Test Set)")
-    report_data = []
-    for label, metrics in rf_metrics["Report"].items():
-        if label in ["Low", "Medium", "High"]:
-            report_data.append({
-                "Risk Regime": label,
-                "Precision": f"{metrics['precision']:.1%}",
-                "Recall": f"{metrics['recall']:.1%}",
-                "F1-Score": f"{metrics['f1-score']:.1%}",
-                "Support": int(metrics['support'])
-            })
-    st.table(pd.DataFrame(report_data))
-    
-    # Visualizing Volatility Regimes historically
-    fig_regimes = px.scatter(
-        df_labeled,
-        x=df_labeled.index,
-        y="Close",
-        color="Risk_Regime",
-        color_discrete_map={"Low": "#10B981", "Medium": "#F59E0B", "High": "#EF4444"},
-        title="Historical Risk Volatility Regimes Across Assets",
-        labels={"color": "Risk Level"}
+    render_insight_box(
+        why_matters="Prophet isolates seasonal and annual load trends while GARCH scales uncertainty bands — revealing price-extreme periods ideal for spot-buying lock-ins.",
+        what_changed=f"Prophet projects a price target of ${future_forecast['yhat'].iloc[-1]:.2f} in {horizon_option} days. XGBoost next-day target: ${next_day_price:.2f}.",
+        what_to_do=f"The {horizon_option}-day uncertainty band spans ${future_forecast['yhat_lower'].iloc[-1]:.2f}–${future_forecast['yhat_upper'].iloc[-1]:.2f}. Adjust hedge ratios if the spread widens by more than 15%."
     )
-    fig_regimes.update_traces(marker=dict(size=4))
-    fig_regimes.update_layout(template="plotly_dark", xaxis_title="Date", yaxis_title="Price ($)")
-    st.plotly_chart(fig_regimes, use_container_width=True)
 
 
-# ------------------------------------------
-# TAB 7: PROCUREMENT DECISION ROOM
-# ------------------------------------------
-with tabs[6]:
-    st.markdown("### Automated Energy Procurement Advisory Board")
-    st.caption("Rule-based business logic converting predictive modeling states into corporate hedging strategies.")
-    
-    # 1. Fetch Tomorrow predictions using our true (latest) inference row and latest close price scale
-    next_day_price = predict_next_day_xgb(xgb_model, inference_row, latest_close)
+# ─────────────────────────────────────────
+# TAB 4 — RISK & STRATEGY
+# ─────────────────────────────────────────
+with tabs[3]:
+    section_header("What Should You Do?", "Actionable Strategy & Procurement Decisions",
+                   "Rule-based procurement advisory, energy allocation sandbox, and hedging guidance.")
+
+    # ── Advisory Board ──
     predicted_risk_tomorrow = predict_next_day_risk(rf_clf, label_encoder, inference_row)
-    
-    # 2. Determine short-term trend direction from SMA ratio
     trend_state = "Bullish" if latest_row["SMA_50_Ratio"] > 0 else "Bearish"
-    
-    # 3. Determine uncertainty ratio from Prophet forecast GARCH intervals
     latest_fc = forecast[forecast["ds"] <= df_labeled.index[-1]].iloc[-1]
     uncertainty_ratio = (latest_fc["yhat_upper"] - latest_fc["yhat_lower"]) / latest_fc["yhat"]
-    
-    # Generate advice
+    next_day_price_tab4 = predict_next_day_xgb(xgb_model, inference_row, latest_close)
+
     procurement_advice = get_procurement_advice(
         ticker=ticker_option,
         current_price=latest_close,
         rolling_vol_30d=latest_vol,
-        current_drawdown=current_drawdown,
+        current_drawdown=current_dd,
         predicted_risk_regime=predicted_risk_tomorrow,
         trend_state=trend_state,
         forecast_uncertainty_ratio=uncertainty_ratio
     )
-    
-    # Render advisory room
-    st.markdown(
-        f"""
-        <div class="rec-box" style="background: {procurement_advice['badge_color']}1a; border-color: {procurement_advice['badge_color']};">
-            <span class="badge" style="background-color: {procurement_advice['badge_color']}; color: #ffffff;">
-                RECOMMENDED ACTION: {procurement_advice['action']}
-            </span>
-            <h3 style="margin: 10px 0; color: #ffffff;">{procurement_advice['headline']}</h3>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-    
-    rec_col1, rec_col2 = st.columns(2)
-    
-    with rec_col1:
-        st.markdown("#### 🎯 Core Decision Justification")
-        for justification in procurement_advice["justifications"]:
-            st.markdown(f"- {justification}")
-            
-        st.markdown("#### 🔮 Forecast Signals Summary")
-        st.markdown(f"- **Current Asset Ticker:** `{ticker_option}`")
-        st.markdown(f"- **Current Volatility:** `{latest_vol:.2%}`")
-        st.markdown(f"- **Yesterday Close:** `${prev_row['Close']:.2f}` → **Today Close:** `${latest_close:.2f}`")
-        st.markdown(f"- **XGBoost Tomorrow Price Target:** `${next_day_price:.2f}`")
-        st.markdown(f"- **Prophet + GARCH Uncertainty Ratio:** `{uncertainty_ratio:.2%}`")
-        st.markdown(f"- **Classification Engine Risk Prediction for Tomorrow:** `{predicted_risk_tomorrow.upper()} RISK`")
-        
-    with rec_col2:
-        st.markdown("#### 🛠️ Tactical Execution Steps")
-        for tactic in procurement_advice["tactics"]:
-            st.markdown(f"✅ **{tactic}**")
 
-
-# ==========================================
-# REPORT DOWNLOAD SECTION
-# ==========================================
-
-st.markdown("---")
-st.markdown("### 📥 Export Analytical Report")
-st.caption("Generate and download a snapshot of the processed data vectors for external tooling or databases.")
-
-# Compile downloadable table
-export_df = train_df.copy()
-export_df = export_df.reset_index()
-
-# Download actions
-csv_data = export_df.to_csv(index=False).encode('utf-8')
-st.download_button(
-    label="Download Processed Dataset as CSV",
-    data=csv_data,
-    file_name=f"ecogrid_ai_{ticker_option}_metrics_{datetime.now().strftime('%Y%m%d')}.csv",
-    mime="text/csv"
-)
-
-st.markdown(
-    """
-    <div style="text-align: center; margin-top: 50px; color: #4b5563; font-size: 0.85rem;">
-        EcoGrid AI Platform • Engineered as a Production-Ready Financial Intelligence System • Built with Python & Streamlit
+    badge_color = procurement_advice["badge_color"]
+    st.markdown(f"""
+    <div class="advisory-panel" style="background:{badge_color}09; border-color:{badge_color}40;">
+        <span class="advisory-action-badge" style="background:{badge_color};">
+            {procurement_advice['action']}
+        </span>
+        <div class="advisory-headline">{procurement_advice['headline']}</div>
+        <div class="advisory-sub">Automated corporate energy procurement signals based on real-time risk classification models.</div>
     </div>
-    """,
-    unsafe_allow_html=True
-)
+    """, unsafe_allow_html=True)
+
+    adv_col1, adv_col2 = st.columns(2)
+    with adv_col1:
+        with st.container(border=True):
+            st.markdown("**🎯 Decision Justification**")
+            for j in procurement_advice["justifications"]:
+                st.markdown(f"- {j}")
+
+            st.markdown("")
+            st.markdown("**📊 Forecast Signal Summary**")
+            signal_rows = [
+                ("Asset Ticker",           f"`{ticker_option}`"),
+                ("Current Volatility",     f"`{latest_vol:.2%}`"),
+                ("Yesterday → Today",      f"`${prev_row['Close']:.2f}` → `${latest_close:.2f}`"),
+                ("XGB Tomorrow Target",    f"`${next_day_price_tab4:.2f}`"),
+                ("Uncertainty Ratio",      f"`{uncertainty_ratio:.2%}`"),
+                ("Tomorrow Risk Forecast", f"`{predicted_risk_tomorrow.upper()} RISK`"),
+            ]
+            for label, val in signal_rows:
+                st.markdown(f"- **{label}:** {val}")
+
+    with adv_col2:
+        with st.container(border=True):
+            st.markdown("**✅ Tactical Execution Steps**")
+            for tactic in procurement_advice["tactics"]:
+                st.markdown(f"- {tactic}")
+
+    st.markdown("---")
+
+    # ── Procurement Sandbox ──
+    section_header("Strategy Simulator", "Data Center Procurement Sandbox",
+                   "Experiment with CFE (Carbon-Free Energy) targets and utility hedges over the past 60-day window.")
+
+    sandbox_col1, sandbox_col2 = st.columns([1, 2])
+    with sandbox_col1:
+        with st.container(border=True):
+            st.markdown("**⚙️ Simulator Settings**")
+            st.caption(
+                "Your data center runs at a constant **100 MW** load, 24/7. "
+                "Adjust the clean spot allocation to see how it affects total spend, volatility, and CFE score."
+            )
+            custom_spot_pct = st.slider(
+                "Clean Spot Allocation (%)",
+                min_value=0, max_value=100, value=50, step=5
+            )
+            custom_utility_pct = 100 - custom_spot_pct
+            st.caption(f"Utility Hedge: **{custom_utility_pct}%** | Spot: **{custom_spot_pct}%**")
+
+    # Simulation engine
+    sim_days = min(60, len(df_labeled))
+    sim_df = df_labeled.iloc[-sim_days:].copy()
+    spot_prices    = sim_df["Close"].values
+    utility_prices = all_assets["XLU"].iloc[-sim_days:]["Close"].values
+    regimes        = sim_df["Risk_Regime"].values
+
+    costs_ai = []; cfe_ai = []
+    costs_spot = []; cfe_spot = []
+    costs_utility = []; cfe_utility = []
+    costs_custom = []; cfe_custom = []
+
+    for i in range(sim_days):
+        sp, up = spot_prices[i], utility_prices[i]
+        costs_spot.append(sp * 100 * 24);      cfe_spot.append(100.0)
+        costs_utility.append(up * 100 * 24);   cfe_utility.append(20.0)
+        costs_custom.append((sp*(custom_spot_pct/100) + up*(custom_utility_pct/100))*100*24)
+        cfe_custom.append(100.0*(custom_spot_pct/100) + 20.0*(custom_utility_pct/100))
+        regime = regimes[i]
+        ai_s = 0.20 if regime == "High" else (0.50 if regime == "Medium" else 0.90)
+        ai_u = 1 - ai_s
+        costs_ai.append((sp*ai_s + up*ai_u)*100*24)
+        cfe_ai.append(100.0*ai_s + 20.0*ai_u)
+
+    tot_ai,   vol_ai,   cfe_ai_avg   = sum(costs_ai),   np.std(costs_ai),   np.mean(cfe_ai)
+    tot_spot, vol_spot, cfe_spot_avg = sum(costs_spot), np.std(costs_spot), np.mean(cfe_spot)
+    tot_util, vol_util, cfe_util_avg = sum(costs_utility), np.std(costs_utility), np.mean(cfe_utility)
+    tot_cust, vol_cust, cfe_cust_avg = sum(costs_custom), np.std(costs_custom), np.mean(cfe_custom)
+
+    leaderboard_data = sorted([
+        {"Strategy": "🤖 EcoGrid AI",     "Total Cost": tot_ai,   "Volatility (SD)": vol_ai,   "Avg CFE": cfe_ai_avg},
+        {"Strategy": "🌱 100% Green Spot","Total Cost": tot_spot, "Volatility (SD)": vol_spot, "Avg CFE": cfe_spot_avg},
+        {"Strategy": "🏭 100% Utility",   "Total Cost": tot_util, "Volatility (SD)": vol_util, "Avg CFE": cfe_util_avg},
+        {"Strategy": "🎨 Your Custom Mix","Total Cost": tot_cust, "Volatility (SD)": vol_cust, "Avg CFE": cfe_cust_avg},
+    ], key=lambda x: x["Total Cost"])
+    medals = ["🥇", "🥈", "🥉", "🎗️"]
+
+    with sandbox_col2:
+        st.markdown("**🏆 Strategy Leaderboard** — Ranked by total spend")
+        rows_html = ""
+        for idx, row in enumerate(leaderboard_data):
+            rows_html += f"""
+            <tr>
+                <td>{medals[idx]} {idx+1}</td>
+                <td><strong>{row['Strategy']}</strong></td>
+                <td>${row['Total Cost']:,.0f}</td>
+                <td>${row['Volatility (SD)']:,.0f}</td>
+                <td>{row['Avg CFE']:.1f}%</td>
+            </tr>"""
+        st.markdown(f"""
+        <table class="lb-table">
+            <thead><tr>
+                <th>Rank</th><th>Strategy</th><th>Total Spend</th>
+                <th>Spend Volatility</th><th>Avg CFE Score</th>
+            </tr></thead>
+            <tbody>{rows_html}</tbody>
+        </table>
+        """, unsafe_allow_html=True)
+
+    st.markdown("")
+
+    # Cumulative cost chart
+    fig_cum = go.Figure()
+    dates = sim_df.index
+    fig_cum.add_trace(go.Scatter(x=dates, y=np.cumsum(costs_ai),      name="EcoGrid AI",     line=dict(color="#10b981", width=3)))
+    fig_cum.add_trace(go.Scatter(x=dates, y=np.cumsum(costs_spot),    name="100% Spot",       line=dict(color="#3b82f6", width=2)))
+    fig_cum.add_trace(go.Scatter(x=dates, y=np.cumsum(costs_utility), name="100% Utility",    line=dict(color="#ef4444", width=2)))
+    fig_cum.add_trace(go.Scatter(x=dates, y=np.cumsum(costs_custom),  name="Your Custom Mix", line=dict(color="#f59e0b", width=2, dash="dash")))
+    apply_chart_theme(fig_cum, "Cumulative Budget Expenditure Comparison",
+                      f"{sim_days}-day window — EcoGrid AI vs. baseline strategies")
+    st.plotly_chart(fig_cum, use_container_width=True)
+
+    # Side-by-side bars
+    perf_col1, perf_col2 = st.columns(2)
+    ld_df = pd.DataFrame(leaderboard_data)
+    color_map = {
+        "🤖 EcoGrid AI": "#10b981", "🌱 100% Green Spot": "#3b82f6",
+        "🏭 100% Utility": "#ef4444", "🎨 Your Custom Mix": "#f59e0b"
+    }
+    with perf_col1:
+        fig_bc = px.bar(ld_df, x="Strategy", y="Total Cost", color="Strategy",
+                        color_discrete_map=color_map)
+        fig_bc.update_traces(marker_line_width=0)
+        apply_chart_theme(fig_bc, "Total Spend ($)", "Lower is better")
+        st.plotly_chart(fig_bc, use_container_width=True)
+    with perf_col2:
+        fig_bcfe = px.bar(ld_df, x="Strategy", y="Avg CFE", color="Strategy",
+                          color_discrete_map=color_map)
+        fig_bcfe.update_traces(marker_line_width=0)
+        apply_chart_theme(fig_bcfe, "Average CFE Score (%)", "Higher is better")
+        st.plotly_chart(fig_bcfe, use_container_width=True)
+
+    # AI savings callout
+    saved_amount    = tot_spot - tot_ai
+    risk_reduction  = (vol_spot - vol_ai) / max(vol_spot, 1e-9) * 100
+    st.info(
+        f"💡 **EcoGrid AI saved ${saved_amount:,.0f}** in procurement costs vs. 100% green spot buying, "
+        f"reduced daily spending volatility by **{risk_reduction:.1f}%**, "
+        f"and maintained an average CFE match of **{cfe_ai_avg:.1f}%**."
+    )
+
+    st.markdown("---")
+
+    # Export section
+    section_header("Data Export", "Download Processed Dataset",
+                   "Export the full feature-engineered time series for external analytics or database logging.")
+
+    with st.expander("📥 Export Options", expanded=False):
+        export_df = train_df.copy().reset_index()
+        csv_data = export_df.to_csv(index=False).encode("utf-8")
+        st.download_button(
+            label=f"⬇️ Download {ticker_option} Feature Dataset (.csv)",
+            data=csv_data,
+            file_name=f"ecogrid_ai_{ticker_option}_{datetime.now().strftime('%Y%m%d')}.csv",
+            mime="text/csv",
+            use_container_width=True
+        )
+
+    render_insight_box(
+        why_matters="Execution tactics translate statistical signals into physical grid operations, shielding margins from sudden spot-rate spikes.",
+        what_changed=f"The optimization simulator runs over the past {sim_days} days of {ticker_option} returns, accounting for full volatility regime shifts.",
+        what_to_do="Purchase compliance blocks when prices touch the lower 95% GARCH band. Suspend incremental spot buys if the Risk Score breaches 75."
+    )
+
+
+# ══════════════════════════════════════════
+# FOOTER
+# ══════════════════════════════════════════
+st.markdown("""
+<div class="footer">
+    <strong>EcoGrid AI</strong> · Green Asset Volatility Intelligence Platform<br>
+    Built with Python · Streamlit · Prophet · XGBoost · GARCH · Plotly<br>
+    <span style="color:#1e293b;">Production-grade financial intelligence for sustainable energy procurement</span>
+</div>
+""", unsafe_allow_html=True)
